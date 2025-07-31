@@ -2,73 +2,103 @@ import React from 'react';
 import {
   SafeAreaView,
   View,
-  Image,
   Text,
-  TouchableOpacity,
-  StyleSheet
+  StyleSheet,
+  Dimensions,
+  Image
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import CustomButton from './components/CustomButton';
+import WheelComponent from './components/WheelComponent';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function DecideScreen({ navigation }) {
+  // Opções de exemplo para mostrar a roleta na tela inicial
+  const exampleOptions = ['Opção 1', 'Opção 2', 'Opção 3', 'Opção 4'];
+  
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.wheelContainer}>
-        <Image
-          source={require('./assets/wheel.png')}
-          style={styles.wheel}
-          resizeMode="contain"
-        />
-        <Image
-          source={require('./assets/marker.png')}
-          style={styles.marker}
-          resizeMode="contain"
-        />
-      </View>
+    <LinearGradient 
+      colors={['#1a2456', '#2d3a6e']} 
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        {/* Logo do App */}
+        <View style={styles.logoContainer}>
+          <Image 
+            source={require('./assets/decideai-icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('Sort')}
-      >
-        <Text style={styles.buttonText}>Escreva opções para sortear</Text>
-      </TouchableOpacity>
+        {/* Roleta de exemplo */}
+        <View style={styles.wheelContainer}>
+          <WheelComponent
+            options={exampleOptions}
+            rotation={{ value: 0 }} // Sem animação na tela inicial
+            size={screenWidth * 0.7}
+          />
+        </View>
 
-      <Text style={styles.orText}>OU</Text>
+        {/* Botões de ação */}
+        <View style={styles.buttonsContainer}>
+          <CustomButton
+            title="Escreva opções para sortear"
+            onPress={() => navigation.navigate('Sort')}
+            style={styles.button}
+          />
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => {/* futuro: navegação para “Preset” */}}
-      >
-        <Text style={styles.buttonText}>Escolha temas pré‑selecionados</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+          <Text style={styles.orText}>OU</Text>
+
+          <CustomButton
+            title="Escolha temas pré‑selecionados"
+            onPress={() => {/* futuro: navegação para "Preset" */}}
+            style={styles.button}
+            colors={['#6A4C93', '#8B5FBF']} // Cor alternativa
+          />
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B174B',
+  },
+  safeArea: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20
+    justifyContent: 'space-between',
+    padding: 20,
+  },
+  logoContainer: {
+    paddingTop: 20,
+    alignItems: 'center',
+  },
+  logo: {
+    width: 80,
+    height: 80,
   },
   wheelContainer: {
-    width: 300,
-    height: 300,
-    marginBottom: 40,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    flex: 1,
   },
-  wheel:    { position: 'absolute', width: '100%', height: '100%' },
-  marker:   { width: 40, height: 40, top: -10 },
-  button:   {
-    backgroundColor: '#1E255E',
-    borderColor: '#2DD4BF',
-    borderWidth: 2,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    marginVertical: 10
+  buttonsContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingBottom: 20,
   },
-  buttonText: { color: '#EDE9FE', fontSize: 16, textAlign: 'center' },
-  orText:      { color: '#EDE9FE', marginVertical: 8, fontSize: 14 }
+  button: {
+    width: '90%',
+    marginVertical: 8,
+  },
+  orText: {
+    color: '#FFFFFF',
+    marginVertical: 15,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

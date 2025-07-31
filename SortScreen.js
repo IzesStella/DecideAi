@@ -3,19 +3,23 @@ import {
   SafeAreaView,
   View,
   Text,
-  FlatList,
-  TouchableOpacity,
-  Button,
+  StyleSheet,
   Modal,
-  TextInput,
-  StyleSheet
+  Dimensions
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Header from './components/Header';
+import CustomButton from './components/CustomButton';
+import CustomInput from './components/CustomInput';
+import OptionsList from './components/OptionsList';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function SortScreen({ navigation }) {
-  const [options, setOptions]           = useState([]);
+  const [options, setOptions] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [input, setInput]               = useState('');
+  const [input, setInput] = useState('');
   const STORAGE_KEY = '@opcoes_decisor';
 
   useEffect(() => {
@@ -38,72 +42,184 @@ export default function SortScreen({ navigation }) {
     setModalVisible(false);
   };
 
+  const removeOption = (index) => {
+    const newList = options.filter((_, i) => i !== index);
+    setOptions(newList);
+    saveOptions(newList);
+  };
+
   const goToWheel = () => {
-    if (options.length) navigation.navigate('Wheel', { options });
+    if (options.length >= 2) {
+      navigation.navigate('Wheel', { options });
+    }
+  };
+
+  const goBack = () => {
+    navigation.goBack();
+  };
+
+  const clearOptions = () => {
+    setOptions([]);
+    saveOptions([]);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Lista de opções</Text>
+    <LinearGradient 
+      colors={['#1a2456', '#2d3a6e']} 
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <Header
+          title="Sorteio Pré-Selecionados"
+          showBackButton={true}
+          showRefreshButton={true}
+          onBackPress={goBack}
+          onRefreshPress={clearOptions}
+        />
 
-      <FlatList
-        data={options}
-        keyExtractor={(_, i) => i.toString()}
-        renderItem={({ item }) => <Text style={styles.item}>{item}</Text>}
-        ListEmptyComponent={<Text style={styles.empty}>Nenhuma opção.</Text>}
-        style={styles.list}
-      />
-
-      <TouchableOpacity
-        style={styles.addBtn}
-        onPress={() => setModalVisible(true)}
-      >
-        <Text style={styles.addText}>+</Text>
-      </TouchableOpacity>
-
-      <Button
-        title="ADICIONAR ESSAS OPÇÕES NA ROLETA"
-        onPress={goToWheel}
-        disabled={options.length === 0}
-      />
-
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalBg}>
-          <View style={styles.modal}>
-            <Text>Escreva sua opção:</Text>
-            <TextInput
-              style={styles.input}
+        <View style={styles.content}>
+          {/* Input para escrever opções */}
+          <View style={styles.inputSection}>
+            <Text style={styles.sectionTitle}>Escrever suas opções:</Text>
+            <CustomInput
+              placeholder="Escrever opção..."
               value={input}
               onChangeText={setInput}
-              placeholder="Digite aqui..."
+              showButton={true}
+              buttonText="ADICIONAR"
+              onButtonPress={addOption}
+              style={styles.input}
             />
-            <Button title="Adicionar" onPress={addOption} />
-            <Button title="Cancelar" onPress={() => setModalVisible(false)} />
+          </View>
+
+          {/* Lista de opções */}
+          <View style={styles.listSection}>
+            <OptionsList
+              options={options}
+              onRemoveOption={removeOption}
+              editable={true}
+              style={styles.optionsList}
+            />
+          </View>
+
+          {/* Botão para ir à roleta */}
+          <View style={styles.buttonSection}>
+            <CustomButton
+              title="Adicionar opções na roleta"
+              onPress={goToWheel}
+              disabled={options.length < 2}
+              style={styles.wheelButton}
+            />
+            
+            <Text style={styles.minOptionsText}>
+              Mínimo 2 opções para sortear
+            </Text>
           </View>
         </View>
-      </Modal>
-    </SafeAreaView>
+
+        {/* Modal para entrada de texto (backup) */}
+        <Modal visible={modalVisible} transparent animationType="slide">
+          <View style={styles.modalBg}>
+            <View style={styles.modal}>
+              <Text style={styles.modalTitle}>Escreva sua opção:</Text>
+              <CustomInput
+                placeholder="Digite aqui..."
+                value={input}
+                onChangeText={setInput}
+                style={styles.modalInput}
+              />
+              <View style={styles.modalButtons}>
+                <CustomButton
+                  title="Adicionar"
+                  onPress={addOption}
+                  style={styles.modalButton}
+                />
+                <CustomButton
+                  title="Cancelar"
+                  onPress={() => setModalVisible(false)}
+                  style={styles.modalButton}
+                  colors={['#999999', '#666666']}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container:  { flex: 1, padding: 20, backgroundColor: '#fff' },
-  title:      { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-  list:       { marginBottom: 20 },
-  item:       { padding: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  empty:      { textAlign: 'center', color: '#888' },
-  addBtn:     {
-    backgroundColor: '#4CAF50',
-    borderRadius: 25,
-    width: 50,
-    height: 50,
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20
+  container: {
+    flex: 1,
   },
-  addText:    { color: '#fff', fontSize: 24 },
-  modalBg:    { flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modal:      { margin: 20, backgroundColor: '#fff', padding: 20, borderRadius: 8 },
-  input:      { borderWidth: 1, borderColor: '#999', borderRadius: 5, padding: 10, marginVertical: 10 }
+  safeArea: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  inputSection: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  input: {
+    marginBottom: 10,
+  },
+  listSection: {
+    flex: 1,
+    marginBottom: 20,
+  },
+  optionsList: {
+    flex: 1,
+  },
+  buttonSection: {
+    alignItems: 'center',
+    paddingBottom: 20,
+  },
+  wheelButton: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  minOptionsText: {
+    color: '#B8E6E6',
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  // Modal styles
+  modalBg: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+  },
+  modal: {
+    margin: 20,
+    backgroundColor: '#B8E6E6',
+    padding: 20,
+    borderRadius: 20,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#2E3A59',
+    textAlign: 'center',
+  },
+  modalInput: {
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  modalButton: {
+    flex: 0.4,
+  },
 });
