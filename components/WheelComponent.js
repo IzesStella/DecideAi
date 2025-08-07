@@ -11,7 +11,7 @@ const WheelComponent = ({ options, rotation, size = screenWidth * 0.8 }) => {
   const centerY = radius;
   
   // Cores para os setores
-  const colors = ['#FF6B35', '#FF8C42', '#FFA652', '#FFB366', '#FFC07A'];
+  const colors = ['#FF6B35', '#FFA652'];
   
   // Função para criar um setor da roleta
   const createSector = (startAngle, endAngle, color, text, index) => {

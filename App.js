@@ -1,5 +1,6 @@
 // App.js
-import React from 'react';
+import React, { useEffect } from 'react';
+import { initDatabase } from './database/db';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -10,6 +11,9 @@ import WheelScreen  from './WheelScreen';  // <— aqui!
 const Stack = createStackNavigator();
 
 export default function App() {
+  useEffect(() => {
+    initDatabase();
+  }, []);
   return (
     <NavigationContainer>
       <Stack.Navigator
