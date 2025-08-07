@@ -1,11 +1,11 @@
 import * as SQLite from 'expo-sqlite';
 
-const db = SQLite.openDatabase('decideai.db');
+const db = SQLite.openDatabaseSync('decideai.db');
 
 export function initDatabase() {
-  db.transaction(tx => {
+  db.withTransactionSync(() => {
     // Tabela de roletas
-    tx.executeSql(
+    db.execSync(
       `CREATE TABLE IF NOT EXISTS roletas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT NOT NULL,
@@ -13,7 +13,7 @@ export function initDatabase() {
       );`
     );
     // Tabela de opções
-    tx.executeSql(
+    db.execSync(
       `CREATE TABLE IF NOT EXISTS opcoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         texto TEXT NOT NULL,
@@ -22,7 +22,7 @@ export function initDatabase() {
       );`
     );
     // Tabela de resultados
-    tx.executeSql(
+    db.execSync(
       `CREATE TABLE IF NOT EXISTS resultados (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         datahora TEXT,

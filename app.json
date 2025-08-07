@@ -27,7 +27,17 @@
     },
     "plugins": [
       "expo-asset",
-      "expo-sqlite"
+      [
+        "expo-sqlite",
+        {
+          "enableFTS": true,
+          "useSQLCipher": true,
+          "android": {
+            "enableFTS": false,
+            "useSQLCipher": false
+          }
+        }
+      ]
     ]
   }
 }
