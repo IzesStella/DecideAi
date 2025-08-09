@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackArrowIcon from './icons/BackArrowIcon';
 import RefreshIcon from './icons/RefreshIcon';
 
@@ -10,8 +11,9 @@ const Header = ({
   onBackPress,
   onRefreshPress 
 }) => {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
       <View style={styles.leftSection}>
         {showBackButton && (
           <TouchableOpacity 
@@ -45,11 +47,11 @@ const Header = ({
 
 const styles = StyleSheet.create({
   header: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
     backgroundColor: 'transparent',
   },
   leftSection: {

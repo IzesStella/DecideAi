@@ -10,6 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from './components/CustomButton';
 import WheelComponent from './components/WheelComponent';
+import { StatusBar } from 'expo-status-bar';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -22,6 +23,7 @@ export default function DecideScreen({ navigation }) {
       colors={['#1a2456', '#2d3a6e']} 
       style={styles.container}
     >
+      <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
 
         {/* Roleta de exemplo */}
@@ -29,7 +31,7 @@ export default function DecideScreen({ navigation }) {
           <WheelComponent
             options={exampleOptions}
             rotation={{ value: 0 }} // Sem animação na tela inicial
-            size={screenWidth * 0.7}
+            size={screenWidth * 0.9} 
           />
         </View>
 
@@ -40,8 +42,6 @@ export default function DecideScreen({ navigation }) {
             onPress={() => navigation.navigate('Sort')}
             style={styles.button}
           />
-
-          <Text style={styles.orText}>OU</Text>
 
           <CustomButton
             title="Escolha temas pré‑selecionados"
@@ -88,16 +88,10 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     width: '100%',
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: 40, // aumentado de 20 para 40, empurrando os botões para cima
   },
   button: {
     width: '90%',
     marginVertical: 8,
-  },
-  orText: {
-    color: '#FFFFFF',
-    marginVertical: 15,
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });

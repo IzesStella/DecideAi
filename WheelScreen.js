@@ -1,16 +1,19 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Vibration } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   withTiming,
   Easing
 } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import WheelComponent from './components/WheelComponent';
 import PopupResult from './components/PopupResult';
 import CustomButton from './components/CustomButton';
 import Header from './components/Header';
 import { saveCustomRoletaSync, saveResultSync, favoriteRoletaSync, updatePresetSync } from './database/db';
+import { StatusBar } from 'expo-status-bar';
+import ConfettiCannon from 'react-native-confetti-cannon';
 
 export default function WheelScreen({ route, navigation }) {
   const { options, roletaName, isPreset = false, presetId = null, shouldFavorite = false } = route.params;
@@ -20,6 +23,7 @@ export default function WheelScreen({ route, navigation }) {
   const [selectedOption, setSelectedOption] = useState('');
   const [isSpinning, setIsSpinning] = useState(false);
   const [roletaId, setRoletaId] = useState(null);
+  const [showConfetti, setShowConfetti] = useState(false);
   const roletaIdRef = useRef(null);
   const isMounted = useRef(true);
 
@@ -120,6 +124,10 @@ export default function WheelScreen({ route, navigation }) {
       setSelectedOption(winner);
       setShowResult(true);
       setIsSpinning(false);
+      setShowConfetti(true); // Ativa os confetes
+
+      // Vibração longa ao mostrar o resultado
+      Vibration.vibrate(500); // 500ms
 
       // Mantém rotation consistente
       rotation.value = finalRotation;
@@ -141,8 +149,9 @@ export default function WheelScreen({ route, navigation }) {
   }, [isSpinning, rotation]);
 
   return (
-    <LinearGradient colors={['#1a2456', '#2d3a6e']} style={styles.container}>
+    <LinearGradient colors={['#FF6806', '#00C19C', '#D4ABF4']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
+        <StatusBar style="light" />
         <Header
           title={roletaName || "Roleta da Decisão"}
           showBackButton
@@ -166,10 +175,26 @@ export default function WheelScreen({ route, navigation }) {
           </View>
         </View>
 
+        {/* Confetes */}
+        {showConfetti && (
+          <ConfettiCannon
+            count={200}
+            origin={{x: -10, y: 0}}
+            fadeOut={true}
+            explosionSpeed={350}
+            fallSpeed={3000}
+            onAnimationEnd={() => setShowConfetti(false)}
+          />
+        )}
+
+        {/* PopupResult */}
         <PopupResult
           visible={showResult}
           result={selectedOption}
-          onClose={closeResult}
+          onClose={() => {
+            setShowResult(false);
+            setShowConfetti(false); // Para os confetes ao fechar
+          }}
         />
       </SafeAreaView>
     </LinearGradient>

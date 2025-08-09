@@ -14,6 +14,7 @@ import Header from './components/Header';
 import CustomButton from './components/CustomButton';
 import CustomInput from './components/CustomInput';
 import OptionsList from './components/OptionsList';
+import { StatusBar } from 'expo-status-bar';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -136,6 +137,7 @@ export default function SortScreen({ navigation, route }) {
       colors={['#1a2456', '#2d3a6e']} 
       style={styles.container}
     >
+      <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
         <Header
           showBackButton={true}
