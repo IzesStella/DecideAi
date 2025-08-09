@@ -10,18 +10,53 @@ import WheelComponent from './components/WheelComponent';
 import PopupResult from './components/PopupResult';
 import CustomButton from './components/CustomButton';
 import Header from './components/Header';
+import { saveCustomRoletaSync, saveResultSync, favoriteRoletaSync, updatePresetSync } from './database/db';
 
 export default function WheelScreen({ route, navigation }) {
-  const { options } = route.params;
+  const { options, roletaName, isPreset = false, presetId = null, shouldFavorite = false } = route.params;
   const rotation = useSharedValue(0);
 
   const [showResult, setShowResult] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
   const [isSpinning, setIsSpinning] = useState(false);
+  const [roletaId, setRoletaId] = useState(null);
+  const roletaIdRef = useRef(null);
   const isMounted = useRef(true);
 
   useEffect(() => {
     isMounted.current = true;
+    console.log('=== WHEEL SCREEN USEEFFECT ===');
+    console.log('Options recebidas:', options);
+    console.log('Nome da roleta:', roletaName);
+    console.log('É preset?', isPreset);
+    console.log('Preset ID:', presetId);
+    
+    if (isPreset && presetId) {
+      // Para presets, usar o ID existente e atualizar nome/opções se foram modificadas
+      console.log('Usando preset existente com ID:', presetId);
+      setRoletaId(presetId);
+      roletaIdRef.current = presetId;
+      
+      // Atualizar o preset no banco (nome e opções)
+      updatePresetSync(presetId, roletaName, options);
+      console.log('Preset atualizado com nome:', roletaName);
+    } else if (options && roletaName) {
+      // Para roletas customizadas, salvar no banco
+      const id = saveCustomRoletaSync(roletaName || 'Minha Roleta', options);
+      console.log('ID da roleta customizada retornado:', id);
+      setRoletaId(id);
+      roletaIdRef.current = id;
+      
+      // Se deve ser favoritada, favoritar após criar
+      if (shouldFavorite && id) {
+        const favoritou = favoriteRoletaSync(id);
+        console.log('Roleta favoritada:', favoritou);
+      }
+    } else {
+      console.log('ERRO: dados insuficientes para inicializar roleta');
+    }
+    console.log('ID final configurado:', roletaIdRef.current);
+    console.log('==============================');
     return () => { isMounted.current = false; };
   }, []);
 
@@ -66,6 +101,20 @@ export default function WheelScreen({ route, navigation }) {
 
       // e) Vencedor
       const winner = options[index];
+      console.log('=== RESULTADO DA ROLETA ===');
+      console.log('Vencedor:', winner);
+      console.log('RoletaId (estado):', roletaId);
+      console.log('RoletaId (referência):', roletaIdRef.current);
+
+      // Salvar resultado no banco de dados usando a referência
+      const idParaSalvar = roletaIdRef.current || roletaId;
+      if (idParaSalvar) {
+        console.log('Salvando com ID:', idParaSalvar);
+        saveResultSync(idParaSalvar, winner);
+      } else {
+        console.error('ERRO: nenhum ID disponível - não pode salvar resultado');
+      }
+      console.log('============================');
 
       // Atualiza estado para mostrar popup
       setSelectedOption(winner);
@@ -95,7 +144,7 @@ export default function WheelScreen({ route, navigation }) {
     <LinearGradient colors={['#1a2456', '#2d3a6e']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <Header
-          title="Roleta da Decisão"
+          title={roletaName || "Roleta da Decisão"}
           showBackButton
           showRefreshButton
           onBackPress={goBack}

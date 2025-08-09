@@ -1,26 +1,83 @@
 // PresetScreen.js
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, FlatList } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+import { getPresetsSync, getPresetOptionsSync, unfavoriteRoletaSync } from './database/db';
 import CustomButton from './components/CustomButton';
 import Header from './components/Header';
-
-// Placeholder: futuramente você fará fetch do seu BD
-const PRESETS_PLACEHOLDER = [];
 
 export default function PresetScreen({ navigation }) {
   const [presets, setPresets] = useState([]);
 
+  const loadPresets = () => {
+    const presetsData = getPresetsSync();
+    const formattedPresets = presetsData.map(t => ({
+      key: 'preset-' + t.id,
+      label: t.nome,
+      id: t.id,
+      isUserCreated: t.id > 4, // IDs maiores que 4 são criados pelo usuário
+    }));
+    
+    // Ordenar: favoritos do usuário primeiro, depois pré-definidos
+    const sortedPresets = formattedPresets.sort((a, b) => {
+      if (a.isUserCreated && !b.isUserCreated) return -1; // a vem primeiro
+      if (!a.isUserCreated && b.isUserCreated) return 1;  // b vem primeiro
+      return a.label.localeCompare(b.label); // ordem alfabética dentro de cada grupo
+    });
+    
+    setPresets(sortedPresets);
+  };
+
+  const handleUnfavorite = (presetId, presetName) => {
+    Alert.alert(
+      'Remover dos Favoritos',
+      `Deseja remover "${presetName}" dos seus favoritos?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: () => {
+            const success = unfavoriteRoletaSync(presetId);
+            if (success) {
+              loadPresets(); // Recarrega a lista
+            }
+          }
+        }
+      ]
+    );
+  };
+
   useEffect(() => {
-    // TODO: faça fetch do seu banco e setPresets(data)
-    setPresets(PRESETS_PLACEHOLDER);
+    loadPresets();
   }, []);
 
+  // Recarregar presets quando a tela receber foco
+  useFocusEffect(
+    React.useCallback(() => {
+      loadPresets();
+    }, [])
+  );
+
   const goToSort = (preset) => {
+    const opcoes = getPresetOptionsSync(preset.id);
+    console.log('=== PRESET SCREEN DEBUG ===');
+    console.log('Preset:', preset);
+    console.log('Opções obtidas:', opcoes);
+    console.log('Navegando para Sort com:', {
+      presetOptions: opcoes,
+      presetName: preset.label,
+      isPreset: true,
+      presetId: preset.id
+    });
+    console.log('===========================');
+    
     navigation.navigate('Sort', {
-      presetKey: preset.key,
-      presetLabel: preset.label,
-      presetList: preset.list,
+      presetOptions: opcoes,
+      presetName: preset.label,
+      isPreset: true,
+      presetId: preset.id
     });
   };
 
@@ -44,7 +101,19 @@ export default function PresetScreen({ navigation }) {
             contentContainerStyle={styles.list}
             renderItem={({ item }) => (
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>{item.label}</Text>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.cardTitle}>
+                    {item.isUserCreated && '⭐ '}{item.label}
+                  </Text>
+                  {item.isUserCreated && (
+                    <TouchableOpacity
+                      onPress={() => handleUnfavorite(item.id, item.label)}
+                      style={styles.unfavoriteButton}
+                    >
+                      <Text style={styles.unfavoriteText}>✕</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
                 <CustomButton
                   title="Sortear este tema"
                   onPress={() => goToSort(item)}
@@ -69,11 +138,31 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 12,
     color: '#2d3a6e',
+    flex: 1,
+  },
+  unfavoriteButton: {
+    backgroundColor: '#ff4444',
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  unfavoriteText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   button: {
     alignSelf: 'flex-end',

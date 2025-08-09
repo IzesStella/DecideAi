@@ -8,7 +8,8 @@ import {
   Dimensions
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { getCurrentSessionOptionsSync, clearCurrentSessionSync, saveSessionOptionSync, removeSessionOptionSync, favoriteRoletaSync, unfavoriteRoletaSync, updatePresetOptionsSync } from './database/db';
 import Header from './components/Header';
 import CustomButton from './components/CustomButton';
 import CustomInput from './components/CustomInput';
@@ -16,41 +17,89 @@ import OptionsList from './components/OptionsList';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export default function SortScreen({ navigation }) {
+export default function SortScreen({ navigation, route }) {
   const [options, setOptions] = useState([]);
+  const [roletaName, setRoletaName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [input, setInput] = useState('');
-  const STORAGE_KEY = '@opcoes_decisor';
+  const [isFavorite, setIsFavorite] = useState(false);
+  
+  // Dados do preset se vier da tela de pré-selecionados
+  const { presetOptions = null, presetName = null, isPreset = false, presetId = null } = route?.params || {};
+  
+  console.log('=== SORTSCREEN DEBUG ===');
+  console.log('Route params:', route?.params);
+  console.log('presetOptions:', presetOptions);
+  console.log('presetName:', presetName);
+  console.log('isPreset:', isPreset);
+  console.log('presetId:', presetId);
+  console.log('========================');
 
   useEffect(() => {
-    (async () => {
-      const json = await AsyncStorage.getItem(STORAGE_KEY);
-      if (json) setOptions(JSON.parse(json));
-    })();
-  }, []);
+    // Se vier com dados de preset, carregar eles
+    if (presetOptions && presetName) {
+      console.log('Carregando preset:', presetName, presetOptions);
+      setOptions(presetOptions);
+      setRoletaName(presetName);
+      setIsFavorite(true); // Presets já são favoritos
+    } else {
+      // Carregar opções da sessão atual do banco de dados
+      const sessionOptions = getCurrentSessionOptionsSync();
+      if (sessionOptions && sessionOptions.length > 0) {
+        setOptions(sessionOptions);
+      }
+    }
+  }, [presetOptions, presetName]);
 
-  const saveOptions = async list => {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  // Limpar opções quando voltar da tela da roleta
+  useFocusEffect(
+    React.useCallback(() => {
+      // Não limpar se estivermos editando um preset
+      if (isPreset) {
+        console.log('Não limpando dados pois é preset');
+        return;
+      }
+      
+      // Verificar se deve limpar as opções (quando volta da roleta)
+      const sessionOptions = getCurrentSessionOptionsSync();
+      if (sessionOptions.length === 0) {
+        console.log('Limpando dados da sessão');
+        setOptions([]);
+        setRoletaName('');
+      }
+    }, [isPreset])
+  );
+
+  const saveOptions = () => {
+    // Não precisa salvar individualmente, será salvo quando for para a roleta
   };
 
   const addOption = () => {
     if (!input.trim()) return;
-    const newList = [...options, input.trim()];
+    const newOption = input.trim();
+    const newList = [...options, newOption];
     setOptions(newList);
-    saveOptions(newList);
+    saveSessionOptionSync(newOption);
     setInput('');
     setModalVisible(false);
   };
 
   const removeOption = (index) => {
+    const optionToRemove = options[index];
     const newList = options.filter((_, i) => i !== index);
     setOptions(newList);
-    saveOptions(newList);
+    removeSessionOptionSync(optionToRemove);
   };
 
   const goToWheel = () => {
     if (options.length >= 2) {
-      navigation.navigate('Wheel', { options });
+      navigation.navigate('Wheel', { 
+        options,
+        roletaName: roletaName.trim() || 'Minha Roleta',
+        shouldFavorite: isFavorite,
+        isPreset: isPreset,
+        presetId: presetId
+      });
     }
   };
 
@@ -58,9 +107,28 @@ export default function SortScreen({ navigation }) {
     navigation.goBack();
   };
 
+  const handleFavoriteToggle = () => {
+    if (isPreset && presetId) {
+      // Se está editando um preset, desfavoritar diretamente
+      if (isFavorite) {
+        unfavoriteRoletaSync(presetId);
+        console.log('Preset desfavoritado:', presetId);
+        navigation.goBack(); // Volta para PresetScreen
+      } else {
+        // Não deveria acontecer, presets já são favoritos
+        setIsFavorite(true);
+      }
+    } else {
+      // Para roletas novas, apenas toggle do estado
+      setIsFavorite(!isFavorite);
+    }
+  };
+
   const clearOptions = () => {
     setOptions([]);
-    saveOptions([]);
+    setRoletaName('');
+    setIsFavorite(false);
+    clearCurrentSessionSync();
   };
 
   return (
@@ -70,7 +138,6 @@ export default function SortScreen({ navigation }) {
     >
       <SafeAreaView style={styles.safeArea}>
         <Header
-          title="Sorteio Pré-Selecionados"
           showBackButton={true}
           showRefreshButton={true}
           onBackPress={goBack}
@@ -78,6 +145,17 @@ export default function SortScreen({ navigation }) {
         />
 
         <View style={styles.content}>
+          {/* Input para nome da roleta */}
+          <View style={styles.inputSection}>
+            <Text style={styles.sectionTitle}>Nome da sua roleta:</Text>
+            <CustomInput
+              placeholder="Ex: Onde vamos jantar?"
+              value={roletaName}
+              onChangeText={setRoletaName}
+              style={styles.input}
+            />
+          </View>
+
           {/* Input para escrever opções */}
           <View style={styles.inputSection}>
             <Text style={styles.sectionTitle}>Escrever suas opções:</Text>
@@ -101,6 +179,19 @@ export default function SortScreen({ navigation }) {
               style={styles.optionsList}
             />
           </View>
+
+          {/* Botão para favoritar */}
+          {!(isPreset && presetId <= 4) && (
+            <View style={styles.favoriteSection}>
+              <CustomButton
+                title={isFavorite ? "⭐ Remover dos favoritos" : "⭐ Adicionar aos favoritos"}
+                onPress={handleFavoriteToggle}
+                style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
+                textStyle={[styles.favoriteButtonText, isFavorite && styles.favoriteButtonTextActive]}
+                disabled={options.length < 2 || !roletaName.trim()}
+              />
+            </View>
+          )}
 
           {/* Botão para ir à roleta */}
           <View style={styles.buttonSection}>
@@ -221,5 +312,23 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     flex: 0.4,
+  },
+  favoriteSection: {
+    marginBottom: 15,
+  },
+  favoriteButton: {
+    backgroundColor: '#6A4C93',
+    minHeight: 45,
+  },
+  favoriteButtonActive: {
+    backgroundColor: '#FF6B35',
+  },
+  favoriteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  favoriteButtonTextActive: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
 });

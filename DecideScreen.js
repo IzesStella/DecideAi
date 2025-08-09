@@ -23,14 +23,6 @@ export default function DecideScreen({ navigation }) {
       style={styles.container}
     >
       <SafeAreaView style={styles.safeArea}>
-        {/* Logo do App */}
-        <View style={styles.logoContainer}>
-          <Image 
-            source={require('./assets/decideai-icon.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
 
         {/* Roleta de exemplo */}
         <View style={styles.wheelContainer}>
@@ -53,9 +45,16 @@ export default function DecideScreen({ navigation }) {
 
           <CustomButton
             title="Escolha temas pré‑selecionados"
-            onPress={() => {/* futuro: navegação para "Preset" */}}
+            onPress={() => navigation.navigate('Preset')}
             style={styles.button}
-            colors={['#6A4C93', '#8B5FBF']} // Cor alternativa
+            colors={['#6A4C93', '#8B5FBF']}
+          />
+
+          <CustomButton
+            title="Ver histórico de roletas"
+            onPress={() => navigation.navigate('History')}
+            style={styles.button}
+            colors={['#FFA652', '#FF6B35']}
           />
         </View>
       </SafeAreaView>

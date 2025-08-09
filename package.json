@@ -16,6 +16,7 @@
     "expo-asset": "~11.1.7",
     "expo-haptics": "~14.1.4",
     "expo-linear-gradient": "~14.1.5",
+    "expo-module-scripts": "^4.1.10",
     "expo-notifications": "~0.31.4",
     "expo-sensors": "~14.1.4",
     "expo-sqlite": "~15.2.14",

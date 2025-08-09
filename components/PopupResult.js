@@ -18,11 +18,6 @@ export default function PopupResult({ visible, result, onClose }) {
 
         {/* Content */}
         <View style={styles.content}>
-          <View style={styles.resultContainer}>
-            <Text style={styles.resultLetter}>
-              {result?.charAt(0).toUpperCase() || ''}
-            </Text>
-          </View>
           <View style={styles.resultTextContainer}>
             <Text style={styles.resultText}>{result}</Text>
           </View>
@@ -70,20 +65,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  resultContainer: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#A8D8D8',
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  resultLetter: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#2E3A59',
-  },
+
   resultTextContainer: {
     backgroundColor: '#A8D8D8',
     paddingVertical: 12,
