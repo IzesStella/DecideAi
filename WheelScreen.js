@@ -7,6 +7,7 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
 import WheelComponent from './components/WheelComponent';
 import PopupResult from './components/PopupResult';
 import CustomButton from './components/CustomButton';
@@ -24,6 +25,7 @@ export default function WheelScreen({ route, navigation }) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [roletaId, setRoletaId] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [sound, setSound] = useState();
   const roletaIdRef = useRef(null);
   const isMounted = useRef(true);
 
@@ -63,6 +65,24 @@ export default function WheelScreen({ route, navigation }) {
     console.log('==============================');
     return () => { isMounted.current = false; };
   }, []);
+
+  // Função para tocar o som
+  const playSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('./assets/celebration.mp3') // seu arquivo de áudio
+      );
+      setSound(sound);
+      await sound.playAsync();
+    } catch (error) {
+      console.log('Erro ao reproduzir som:', error);
+    }
+  };
+
+  // Limpar o som ao sair da tela
+  useEffect(() => {
+    return sound ? () => sound.unloadAsync() : undefined;
+  }, [sound]);
 
   const spin = useCallback(() => {
     if (isSpinning || !options?.length) return;
@@ -126,8 +146,9 @@ export default function WheelScreen({ route, navigation }) {
       setIsSpinning(false);
       setShowConfetti(true); // Ativa os confetes
 
-      // Vibração longa ao mostrar o resultado
+      // Vibração + Som + Confetes
       Vibration.vibrate(500); // 500ms
+      playSound(); // Toca o som
 
       // Mantém rotation consistente
       rotation.value = finalRotation;
@@ -149,7 +170,7 @@ export default function WheelScreen({ route, navigation }) {
   }, [isSpinning, rotation]);
 
   return (
-    <LinearGradient colors={['#FF6806', '#00C19C', '#D4ABF4']} style={styles.container}>
+    <View style={[styles.container, { backgroundColor: '#1a2456' }]}>
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style="light" />
         <Header
@@ -197,7 +218,7 @@ export default function WheelScreen({ route, navigation }) {
           }}
         />
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 

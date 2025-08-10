@@ -5,7 +5,7 @@ import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const WheelComponent = ({ options, rotation, size = screenWidth * 0.9 }) => {
+const WheelComponent = ({ options, rotation, size = screenWidth * 1.0 }) => {
   const radius = size / 2;
   const centerX = radius;
   const centerY = radius;
@@ -57,7 +57,6 @@ const WheelComponent = ({ options, rotation, size = screenWidth * 0.9 }) => {
     return options.map((option, index) => {
       const angle = index * anglePerOption + anglePerOption / 2;
       const angleRad = (angle * Math.PI) / 180;
-      // Movendo o texto mais para o centro (mudando de 0.6 para 0.5)
       const textX = centerX + radius * 0.5 * Math.cos(angleRad);
       const textY = centerY + radius * 0.5 * Math.sin(angleRad);
       
@@ -66,9 +65,10 @@ const WheelComponent = ({ options, rotation, size = screenWidth * 0.9 }) => {
           key={`text-${index}`}
           style={{
             position: 'absolute',
-            left: textX - 40, // aumentando a área do texto
-            top: textY - 15,
-            width: 80, // aumentando a largura
+            left: textX - 50, // aumentado de 40 para 50
+            top: textY - 20, // aumentado de 15 para 20
+            width: 100, // aumentado de 80 para 100
+            height: 40, // adicionada altura fixa
             alignItems: 'center',
             justifyContent: 'center',
             transform: [{ rotate: `${angle}deg` }]
@@ -77,18 +77,20 @@ const WheelComponent = ({ options, rotation, size = screenWidth * 0.9 }) => {
           <Text
             style={{
               color: '#FFF',
-              fontSize: 16,
+              fontSize: 14, // reduzido de 16 para 14
               fontWeight: 'bold',
               textAlign: 'center',
-              textShadowColor: 'rgba(0,0,0,0.5)',
+              textShadowColor: 'rgba(0,0,0,0.7)', // sombra mais forte
               textShadowOffset: { width: 1, height: 1 },
-              textShadowRadius: 2,
-              width: 80, // aumentando a largura do texto
-              paddingHorizontal: 4, // mais padding
+              textShadowRadius: 3, // sombra maior
+              width: '100%',
+              paddingHorizontal: 6, // aumentado padding
+              lineHeight: 16, // altura da linha
             }}
-            numberOfLines={1}
+            numberOfLines={2} // permitir 2 linhas
             adjustsFontSizeToFit
-            minimumFontScale={0.6}
+            minimumFontScale={0.5} // pode reduzir mais se necessário
+            ellipsizeMode="tail" // adicionar ... se não couber
           >
             {option}
           </Text>
@@ -158,11 +160,11 @@ const WheelComponent = ({ options, rotation, size = screenWidth * 0.9 }) => {
         <Image
           source={require('../assets/wheel-center.png')}
           style={{
-            width: 100, // aumentando mais (de 80 para 100)
-            height: 100, // aumentando mais (de 80 para 100)
+            width: 110, 
+            height: 110, 
             position: 'absolute',
-            top: centerY - 50, // ajustando para centralizar
-            left: centerX - 50, // ajustando para centralizar
+            top: centerY - 55, 
+            left: centerX - 55, 
           }}
         />
       </Animated.View>

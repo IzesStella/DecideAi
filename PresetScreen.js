@@ -1,14 +1,17 @@
 // PresetScreen.js
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { getPresetsSync, getPresetOptionsSync, unfavoriteRoletaSync } from './database/db';
 import CustomButton from './components/CustomButton';
 import Header from './components/Header';
+import ConfirmModal from './components/ConfirmModal';
 
 export default function PresetScreen({ navigation }) {
   const [presets, setPresets] = useState([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState(null);
 
   const loadPresets = () => {
     const presetsData = getPresetsSync();
@@ -30,23 +33,22 @@ export default function PresetScreen({ navigation }) {
   };
 
   const handleUnfavorite = (presetId, presetName) => {
-    Alert.alert(
-      'Remover dos Favoritos',
-      `Deseja remover "${presetName}" dos seus favoritos?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: () => {
-            const success = unfavoriteRoletaSync(presetId);
-            if (success) {
-              loadPresets(); // Recarrega a lista
-            }
-          }
-        }
-      ]
-    );
+    setSelectedPreset({ id: presetId, name: presetName });
+    setShowConfirmModal(true);
+  };
+
+  const confirmRemoval = () => {
+    const success = unfavoriteRoletaSync(selectedPreset.id);
+    if (success) {
+      loadPresets();
+    }
+    setShowConfirmModal(false);
+    setSelectedPreset(null);
+  };
+
+  const cancelRemoval = () => {
+    setShowConfirmModal(false);
+    setSelectedPreset(null);
   };
 
   useEffect(() => {
@@ -115,7 +117,7 @@ export default function PresetScreen({ navigation }) {
                   )}
                 </View>
                 <CustomButton
-                  title="Sortear este tema"
+                  title="Girar roleta"
                   onPress={() => goToSort(item)}
                   style={styles.button}
                 />
@@ -123,6 +125,14 @@ export default function PresetScreen({ navigation }) {
             )}
           />
         )}
+
+        <ConfirmModal
+          visible={showConfirmModal}
+          title="Remover dos Favoritos"
+          message={`Deseja remover "${selectedPreset?.name}" dos seus favoritos?`}
+          onCancel={cancelRemoval}
+          onConfirm={confirmRemoval}
+        />
       </SafeAreaView>
     </LinearGradient>
   );
@@ -165,7 +175,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   button: {
-    alignSelf: 'flex-end',
+    alignSelf: 'center', 
     width: 150,
   },
   emptyContainer: {

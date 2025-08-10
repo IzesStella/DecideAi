@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSharedValue } from 'react-native-reanimated';
+import { withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import {
   SafeAreaView,
   View,
@@ -15,8 +17,23 @@ import { StatusBar } from 'expo-status-bar';
 const { width: screenWidth } = Dimensions.get('window');
 
 export default function DecideScreen({ navigation }) {
+  // Criar valor animado para rotação contínua
+  const rotation = useSharedValue(0);
+
+  // Iniciar animação quando a tela carregar
+  useEffect(() => {
+    rotation.value = withRepeat(
+      withTiming(360, { 
+        duration: 4000, // 4 segundos para dar uma volta completa
+        easing: Easing.linear // rotação constante, sem aceleração
+      }),
+      -1, // repetir infinitamente
+      false // não reverter a direção
+    );
+  }, []);
+
   // Opções de exemplo para mostrar a roleta na tela inicial
-  const exampleOptions = ['Opção 1', 'Opção 2', 'Opção 3', 'Opção 4'];
+  const exampleOptions = ['D', 'e', 'c', 'i', 'd', 'e', 'A', 'i'];
   
   return (
     <LinearGradient 
@@ -26,12 +43,12 @@ export default function DecideScreen({ navigation }) {
       <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
 
-        {/* Roleta de exemplo */}
+        {/* Roleta com animação contínua */}
         <View style={styles.wheelContainer}>
           <WheelComponent
             options={exampleOptions}
-            rotation={{ value: 0 }} // Sem animação na tela inicial
-            size={screenWidth * 0.9} 
+            rotation={rotation} // passar a animação para o componente
+            size={screenWidth * 1.0}
           />
         </View>
 
@@ -88,7 +105,7 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     width: '100%',
     alignItems: 'center',
-    paddingBottom: 40, // aumentado de 20 para 40, empurrando os botões para cima
+    paddingBottom: 40, 
   },
   button: {
     width: '90%',
