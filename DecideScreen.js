@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from './components/CustomButton';
 import WheelComponent from './components/WheelComponent';
 import { StatusBar } from 'expo-status-bar';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -43,6 +44,16 @@ export default function DecideScreen({ navigation }) {
       <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
 
+        {/* Ícone de histórico no topo direito */}
+        <View style={styles.headerIcons}>
+          <MaterialIcons
+            name="history"
+            size={36}
+            color="#B8E6E6"
+            onPress={() => navigation.navigate('History')}
+          />
+        </View>
+
         {/* Roleta com animação contínua */}
         <View style={styles.wheelContainer}>
           <WheelComponent
@@ -68,10 +79,10 @@ export default function DecideScreen({ navigation }) {
           />
 
           <CustomButton
-            title="Ver histórico de roletas"
-            onPress={() => navigation.navigate('History')}
+            title="Suas roletas favoritas"
+            onPress={() => navigation.navigate('Favorites')}
             style={styles.button}
-            colors={['#FFA652', '#FF6B35']}
+            colors={['#6A4C93', '#8B5FBF']}
           />
         </View>
       </SafeAreaView>
@@ -110,5 +121,15 @@ const styles = StyleSheet.create({
   button: {
     width: '90%',
     marginVertical: 8,
+  },
+  headerIcons: {
+    width: '100%',
+    alignItems: 'flex-end',
+    paddingRight: 20,
+    paddingTop: 40, 
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 10,
   },
 });

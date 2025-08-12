@@ -176,9 +176,7 @@ export default function WheelScreen({ route, navigation }) {
         <Header
           title={roletaName || "Roleta da Decisão"}
           showBackButton
-          showRefreshButton
           onBackPress={goBack}
-          onRefreshPress={resetWheel}
         />
 
         <View style={styles.content}>

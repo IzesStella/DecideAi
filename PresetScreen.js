@@ -15,21 +15,17 @@ export default function PresetScreen({ navigation }) {
 
   const loadPresets = () => {
     const presetsData = getPresetsSync();
-    const formattedPresets = presetsData.map(t => ({
-      key: 'preset-' + t.id,
-      label: t.nome,
-      id: t.id,
-      isUserCreated: t.id > 4, // IDs maiores que 4 são criados pelo usuário
-    }));
-    
-    // Ordenar: favoritos do usuário primeiro, depois pré-definidos
-    const sortedPresets = formattedPresets.sort((a, b) => {
-      if (a.isUserCreated && !b.isUserCreated) return -1; // a vem primeiro
-      if (!a.isUserCreated && b.isUserCreated) return 1;  // b vem primeiro
-      return a.label.localeCompare(b.label); // ordem alfabética dentro de cada grupo
-    });
-    
-    setPresets(sortedPresets);
+    // Aumentar o número para incluir mais temas
+    const formattedPresets = presetsData
+      .filter(t => t.id <= 15) // mudou de 4 para 6
+      .map(t => ({
+        key: 'preset-' + t.id,
+        label: t.nome,
+        id: t.id,
+        isUserCreated: false,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    setPresets(formattedPresets);
   };
 
   const handleUnfavorite = (presetId, presetName) => {

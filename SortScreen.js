@@ -140,10 +140,9 @@ export default function SortScreen({ navigation, route }) {
       <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
         <Header
+          title="Criar Roleta"
           showBackButton={true}
-          showRefreshButton={true}
           onBackPress={goBack}
-          onRefreshPress={clearOptions}
         />
 
         <View style={styles.content}>

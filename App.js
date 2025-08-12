@@ -9,6 +9,7 @@ import SortScreen   from './SortScreen';
 import WheelScreen  from './WheelScreen';
 import HistoryScreen from './HistoryScreen';
 import PresetScreen from './PresetScreen';
+import FavoritesScreen from './FavoritesScreen';
 
 const Stack = createStackNavigator();
 
@@ -27,6 +28,7 @@ export default function App() {
         <Stack.Screen name="Wheel"  component={WheelScreen} />
         <Stack.Screen name="History" component={HistoryScreen} />
         <Stack.Screen name="Preset" component={PresetScreen} />
+        <Stack.Screen name="Favorites" component={FavoritesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
