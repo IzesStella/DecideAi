@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
-import { getCurrentSessionOptionsSync, clearCurrentSessionSync, saveSessionOptionSync, removeSessionOptionSync, favoriteRoletaSync, unfavoriteRoletaSync, updatePresetOptionsSync } from './database/db';
+import { getCurrentSessionOptionsSync, clearCurrentSessionSync, saveSessionOptionSync, removeSessionOptionSync, favoriteRoletaSync, unfavoriteRoletaSync, updatePresetOptionsSync, saveCustomRoletaSync } from './database/db';
 import Header from './components/Header';
 import CustomButton from './components/CustomButton';
 import CustomInput from './components/CustomInput';
@@ -94,13 +94,27 @@ export default function SortScreen({ navigation, route }) {
 
   const goToWheel = () => {
     if (options.length >= 2) {
+      console.log('=== GOING TO WHEEL ===');
+      console.log('Options:', options);
+      console.log('RoletaName:', roletaName);
+      console.log('IsFavorite:', isFavorite);
+      console.log('IsPreset:', isPreset);
+      console.log('PresetId:', presetId);
+      
+      // Se é um preset que está sendo editado, atualizar suas opções
+      if (isPreset && presetId) {
+        updatePresetOptionsSync(presetId, options);
+        console.log('Preset atualizado:', presetId);
+      }
+      
       navigation.navigate('Wheel', { 
-        options,
+        options: options,
         roletaName: roletaName.trim() || 'Minha Roleta',
-        shouldFavorite: isFavorite,
+        shouldFavorite: isFavorite && !isPreset, // Só favoritar se não for preset existente
         isPreset: isPreset,
         presetId: presetId
       });
+      console.log('======================');
     }
   };
 
@@ -140,7 +154,7 @@ export default function SortScreen({ navigation, route }) {
       <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
         <Header
-          title="Criar Roleta"
+          title=" "
           showBackButton={true}
           onBackPress={goBack}
         />
@@ -182,7 +196,7 @@ export default function SortScreen({ navigation, route }) {
           </View>
 
           {/* Botão para favoritar */}
-          {!(isPreset && presetId <= 4) && (
+          {!(isPreset && presetId <= 6) && (
             <View style={styles.favoriteSection}>
               <CustomButton
                 title={isFavorite ? "⭐ Remover dos favoritos" : "⭐ Adicionar aos favoritos"}
@@ -197,7 +211,7 @@ export default function SortScreen({ navigation, route }) {
           {/* Botão para ir à roleta */}
           <View style={styles.buttonSection}>
             <CustomButton
-              title="Adicionar opções na roleta"
+              title="Girar Roleta"
               onPress={goToWheel}
               disabled={options.length < 2}
               style={styles.wheelButton}

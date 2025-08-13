@@ -43,33 +43,63 @@ export function initDatabase() {
       );
 
       // Inserir alguns temas pré-salvos se não existirem
-      const existingPresets = db.getAllSync(`SELECT id FROM roletas WHERE preset = 1`);
+      const existingPresets = db.getAllSync(`SELECT id FROM roletas WHERE id >= 1 AND id <= 6`); // ✅ Verificar por ID em vez de preset
       
       if (existingPresets.length === 0) {
-        // Inserir tema "Filmes de Romance"
-        db.runSync(`INSERT INTO roletas (nome, preset) VALUES (?, 1)`, ["Filmes de Romance"]);
-        const roletaId = db.getFirstSync(`SELECT last_insert_rowid() as id`).id;
-        
+        // Tema 1: Filmes de Romance
+        db.runSync(`INSERT INTO roletas (nome, preset) VALUES (?, 0)`, ["Filmes de Romance"]); // ❌ Era preset = 1, agora é 0
+        const roletaId1 = db.getFirstSync(`SELECT last_insert_rowid() as id`).id;
         const filmes = ["Titanic", "Diário de uma Paixão", "Como Eu Era Antes de Você", "A Escolha", "Querido John"];
         filmes.forEach(filme => {
-          db.runSync(`INSERT INTO opcoes (texto, r_id) VALUES (?, ?)`, [filme, roletaId]);
+          db.runSync(`INSERT INTO opcoes (texto, r_id) VALUES (?, ?)`, [filme, roletaId1]);
         });
 
-        // Inserir tema "Comidas para Jantar"
-        db.runSync(`INSERT INTO roletas (nome, preset) VALUES (?, 1)`, ["Comidas para Jantar"]);
+        // Tema 2: Comidas para Jantar
+        db.runSync(`INSERT INTO roletas (nome, preset) VALUES (?, 0)`, ["Comidas para Jantar"]); // ❌ Era preset = 1, agora é 0
         const roletaId2 = db.getFirstSync(`SELECT last_insert_rowid() as id`).id;
-        
         const comidas = ["Pizza", "Hambúrguer", "Lasanha", "Sushi", "Macarrão", "Salada"];
         comidas.forEach(comida => {
           db.runSync(`INSERT INTO opcoes (texto, r_id) VALUES (?, ?)`, [comida, roletaId2]);
         });
 
+        // Tema 3: Atividades de Fim de Semana
+        db.runSync(`INSERT INTO roletas (nome, preset) VALUES (?, 0)`, ["Atividades de Fim de Semana"]); // ❌ Era preset = 1, agora é 0
+        const roletaId3 = db.getFirstSync(`SELECT last_insert_rowid() as id`).id;
+        const atividades = ["Cinema", "Parque", "Shopping", "Praia", "Trilha", "Museu", "Restaurante"];
+        atividades.forEach(atividade => {
+          db.runSync(`INSERT INTO opcoes (texto, r_id) VALUES (?, ?)`, [atividade, roletaId3]);
+        });
+
+        // Tema 4: Séries para Assistir
+        db.runSync(`INSERT INTO roletas (nome, preset) VALUES (?, 0)`, ["Séries para Assistir"]); // ❌ Era preset = 1, agora é 0
+        const roletaId4 = db.getFirstSync(`SELECT last_insert_rowid() as id`).id;
+        const series = ["Breaking Bad", "Stranger Things", "The Office", "Friends", "Game of Thrones", "La Casa de Papel"];
+        series.forEach(serie => {
+          db.runSync(`INSERT INTO opcoes (texto, r_id) VALUES (?, ?)`, [serie, roletaId4]);
+        });
+
+        // Tema 5: Livros para Ler
+        db.runSync(`INSERT INTO roletas (nome, preset) VALUES (?, 0)`, ["Livros para Ler"]); // ❌ Era preset = 1, agora é 0
+        const roletaId5 = db.getFirstSync(`SELECT last_insert_rowid() as id`).id;
+        const livros = ["1984", "Dom Casmurro", "O Senhor dos Anéis", "A Revolução dos Bichos", "Harry Potter"];
+        livros.forEach(livro => {
+          db.runSync(`INSERT INTO opcoes (texto, r_id) VALUES (?, ?)`, [livro, roletaId5]);
+        });
+
+        // tema 6: Sobremesas 
+        db.runSync(`INSERT INTO roletas (nome, preset) VALUES (?, 0)`, ["Sobremesas"]); // ❌ Era preset = 1, agora é 0
+        const roletaId6 = db.getFirstSync(`SELECT last_insert_rowid() as id`).id;
+        const sobremesas = ["Brigadeiro", "Pudim", "Sorvete", "Torta de Chocolate", "Beijinho", "Mousse"];
+        sobremesas.forEach(sobremesa => {
+          db.runSync(`INSERT INTO opcoes (texto, r_id) VALUES (?, ?)`, [sobremesa, roletaId6]);
+        });
+
         // Inserir um resultado de teste para aparecer no histórico
-        const opcaoTeste = db.getFirstSync(`SELECT id FROM opcoes WHERE r_id = ? LIMIT 1`, [roletaId]);
+        const opcaoTeste = db.getFirstSync(`SELECT id FROM opcoes WHERE r_id = ? LIMIT 1`, [roletaId1]);
         if (opcaoTeste) {
           db.runSync(
             `INSERT INTO resultados (datahora, favorito, r_id, opc_id) VALUES (?, 0, ?, ?)`,
-            [new Date().toISOString(), roletaId, opcaoTeste.id]
+            [new Date().toISOString(), roletaId1, opcaoTeste.id]
           );
         }
       } else {
@@ -112,8 +142,9 @@ export function getHistorySync() {
 export function getPresetsSync() {
   try {
     const result = db.getAllSync(`
-      SELECT id, nome FROM roletas WHERE preset = 1
+      SELECT id, nome, preset FROM roletas WHERE preset = 1
     `);
+    console.log('getPresetsSync result:', result);
     return result;
   } catch (error) {
     console.error('Erro ao buscar presets:', error);
@@ -179,20 +210,14 @@ export function saveCustomRoletaSync(nome, opcoes) {
     console.log('Opções:', opcoes);
     let roletaId;
     db.withTransactionSync(() => {
-      // Inserir a roleta
+      // Inserir roleta (preset = 0 inicialmente)
       db.runSync(`INSERT INTO roletas (nome, preset) VALUES (?, 0)`, [nome]);
       roletaId = db.getFirstSync(`SELECT last_insert_rowid() as id`).id;
-      console.log('Roleta criada com ID:', roletaId);
       
-      // Inserir as opções
-      opcoes.forEach((opcao, index) => {
+      // Inserir opções
+      opcoes.forEach(opcao => {
         db.runSync(`INSERT INTO opcoes (texto, r_id) VALUES (?, ?)`, [opcao, roletaId]);
-        console.log(`Opção ${index + 1} inserida:`, opcao);
       });
-
-      // Limpar sessão temporária após salvar
-      db.runSync(`DELETE FROM sessao_temporaria`);
-      console.log('Sessão temporária limpa');
     });
     console.log('Roleta salva com sucesso, ID:', roletaId);
     console.log('====================================');
@@ -243,8 +268,21 @@ export function clearCurrentSessionSync() {
 // Função para favoritar uma roleta (transformar em preset)
 export function favoriteRoletaSync(roletaId) {
   try {
+    console.log('=== FAVORITANDO ROLETA ===');
+    console.log('ID da roleta:', roletaId);
+    
+    // Verificar se a roleta existe antes
+    const roletaExiste = db.getFirstSync(`SELECT * FROM roletas WHERE id = ?`, [roletaId]);
+    console.log('Roleta antes da atualização:', roletaExiste);
+    
     db.runSync(`UPDATE roletas SET preset = 1 WHERE id = ?`, [roletaId]);
-    console.log('Roleta favoritada:', roletaId);
+    
+    // Verificar se foi atualizada
+    const roletaAtualizada = db.getFirstSync(`SELECT * FROM roletas WHERE id = ?`, [roletaId]);
+    console.log('Roleta após atualização:', roletaAtualizada);
+    
+    console.log('Roleta favoritada com sucesso!');
+    console.log('==========================');
     return true;
   } catch (error) {
     console.error('Erro ao favoritar roleta:', error);
@@ -307,4 +345,34 @@ export function updatePresetSync(roletaId, novoNome, novasOpcoes) {
   }
 }
 
+// Função para buscar todas as roletas (para usar no FavoritesScreen)
+export function getAllRoletasSync() {
+  try {
+    const result = db.getAllSync(`
+      SELECT id, nome, preset FROM roletas ORDER BY id
+    `);
+    console.log('getAllRoletasSync result:', result);
+    return result;
+  } catch (error) {
+    console.error('Erro ao buscar todas as roletas:', error);
+    return [];
+  }
+}
+
+// Função para resetar o banco de dados (apagar todas as tabelas e dados)
+export function resetDatabase() {
+  try {
+    console.log('🔥 RESETANDO BANCO...');
+    db.withTransactionSync(() => {
+      db.execSync(`DROP TABLE IF EXISTS resultados`);
+      db.execSync(`DROP TABLE IF EXISTS opcoes`);
+      db.execSync(`DROP TABLE IF EXISTS roletas`);
+      db.execSync(`DROP TABLE IF EXISTS sessao_temporaria`);
+    });
+    console.log('✅ Banco resetado!');
+  } catch (error) {
+    console.error('❌ Erro ao resetar:', error);
+  }
+}
+//lembrar de tirar em cima
 export default db;

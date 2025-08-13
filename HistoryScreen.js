@@ -38,7 +38,7 @@ export default function HistoryScreen({ navigation }) {
     <LinearGradient colors={['#1a2456', '#2d3a6e']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <Header
-          title="Histórico de Roletas"
+          title="Histórico"
           showBackButton
           onBackPress={() => navigation.goBack()}
         />
@@ -52,7 +52,7 @@ export default function HistoryScreen({ navigation }) {
             keyExtractor={(item, index) => `${item.id}-${index}`}
             contentContainerStyle={styles.list}
             renderItem={({ item }) => {
-              const isUserCreated = item.preset === 1 && item.roleta_id > 4;
+              const isUserCreated = item.preset === 1 && item.roleta_id > 6;
               console.log('Renderizando item:', item.roleta_nome, 'preset:', item.preset, 'id:', item.roleta_id, 'isUserCreated:', isUserCreated);
               return (
                 <View style={styles.card}>

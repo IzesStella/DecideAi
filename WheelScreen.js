@@ -37,34 +37,38 @@ export default function WheelScreen({ route, navigation }) {
     console.log('É preset?', isPreset);
     console.log('Preset ID:', presetId);
     
-    if (isPreset && presetId) {
-      // Para presets, usar o ID existente e atualizar nome/opções se foram modificadas
-      console.log('Usando preset existente com ID:', presetId);
-      setRoletaId(presetId);
-      roletaIdRef.current = presetId;
-      
-      // Atualizar o preset no banco (nome e opções)
-      updatePresetSync(presetId, roletaName, options);
-      console.log('Preset atualizado com nome:', roletaName);
-    } else if (options && roletaName) {
-      // Para roletas customizadas, salvar no banco
-      const id = saveCustomRoletaSync(roletaName || 'Minha Roleta', options);
-      console.log('ID da roleta customizada retornado:', id);
-      setRoletaId(id);
-      roletaIdRef.current = id;
-      
-      // Se deve ser favoritada, favoritar após criar
-      if (shouldFavorite && id) {
-        const favoritou = favoriteRoletaSync(id);
-        console.log('Roleta favoritada:', favoritou);
+    const createRoleta = async () => {
+      try {
+        let currentRoletaId;
+        
+        if (isPreset && presetId) {
+          // Se é um preset existente, usar o ID dele
+          currentRoletaId = presetId;
+          console.log('Usando preset existente:', currentRoletaId);
+        } else {
+          // Criar nova roleta personalizada
+          const name = roletaName || 'Minha Roleta';
+          currentRoletaId = saveCustomRoletaSync(name, options);
+          console.log('Nova roleta criada:', currentRoletaId);
+          
+          // Se deve favoritar, marcar como preset
+          if (shouldFavorite && currentRoletaId) {
+            const favoriteSuccess = favoriteRoletaSync(currentRoletaId);
+            console.log('Roleta favoritada:', favoriteSuccess);
+          }
+        }
+        
+        setRoletaId(currentRoletaId);
+        roletaIdRef.current = currentRoletaId;
+        console.log('RoletaId definido:', currentRoletaId);
+      } catch (error) {
+        console.error('Erro ao criar/configurar roleta:', error);
       }
-    } else {
-      console.log('ERRO: dados insuficientes para inicializar roleta');
-    }
-    console.log('ID final configurado:', roletaIdRef.current);
-    console.log('==============================');
+    };
+
+    createRoleta();
     return () => { isMounted.current = false; };
-  }, []);
+  }, [options, roletaName, isPreset, presetId, shouldFavorite]);
 
   // Função para tocar o som
   const playSound = async () => {

@@ -32,9 +32,6 @@ const OptionsList = ({
     <View style={[styles.container, style]}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Lista de Opções</Text>
-        <View style={styles.headerIcon}>
-          <Text style={styles.headerIconText}>⚙</Text>
-        </View>
       </View>
       
       <View style={styles.listContainer}>
@@ -77,19 +74,6 @@ const styles = StyleSheet.create({
   },
   headerText: {
     color: '#2E3A59',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  headerIcon: {
-    backgroundColor: '#5AA8A8',
-    borderRadius: 15,
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerIconText: {
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },

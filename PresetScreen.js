@@ -3,48 +3,32 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
-import { getPresetsSync, getPresetOptionsSync, unfavoriteRoletaSync } from './database/db';
+import { getAllRoletasSync, getPresetOptionsSync } from './database/db'; // removido unfavoriteRoletaSync
 import CustomButton from './components/CustomButton';
 import Header from './components/Header';
-import ConfirmModal from './components/ConfirmModal';
 
 export default function PresetScreen({ navigation }) {
   const [presets, setPresets] = useState([]);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState(null);
 
   const loadPresets = () => {
-    const presetsData = getPresetsSync();
-    // Aumentar o número para incluir mais temas
-    const formattedPresets = presetsData
-      .filter(t => t.id <= 15) // mudou de 4 para 6
+    const todasRoletas = getAllRoletasSync();
+    console.log('=== PRESET SCREEN ===');
+    console.log('Todas as roletas:', todasRoletas);
+    
+    // Apenas temas pré-definidos originais (IDs 1-6)
+    const themesPreDefinidos = todasRoletas
+      .filter(t => t.id >= 1 && t.id <= 6) // Apenas os 6 temas originais
       .map(t => ({
         key: 'preset-' + t.id,
         label: t.nome,
         id: t.id,
-        isUserCreated: false,
+        isUserCreated: false, // Todos são pré-definidos
       }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-    setPresets(formattedPresets);
-  };
-
-  const handleUnfavorite = (presetId, presetName) => {
-    setSelectedPreset({ id: presetId, name: presetName });
-    setShowConfirmModal(true);
-  };
-
-  const confirmRemoval = () => {
-    const success = unfavoriteRoletaSync(selectedPreset.id);
-    if (success) {
-      loadPresets();
-    }
-    setShowConfirmModal(false);
-    setSelectedPreset(null);
-  };
-
-  const cancelRemoval = () => {
-    setShowConfirmModal(false);
-    setSelectedPreset(null);
+      .sort((a, b) => a.id - b.id); // Ordenar por ID para manter ordem original
+    
+    console.log('Temas pré-definidos:', themesPreDefinidos);
+    console.log('=====================');
+    setPresets(themesPreDefinidos);
   };
 
   useEffect(() => {
@@ -83,7 +67,7 @@ export default function PresetScreen({ navigation }) {
     <LinearGradient colors={['#1a2456', '#2d3a6e']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <Header
-          title="Temas Pré-selecionados"
+          title="Pré-selecionados"
           showBackButton
           onBackPress={() => navigation.goBack()}
         />
@@ -99,19 +83,7 @@ export default function PresetScreen({ navigation }) {
             contentContainerStyle={styles.list}
             renderItem={({ item }) => (
               <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>
-                    {item.isUserCreated && '⭐ '}{item.label}
-                  </Text>
-                  {item.isUserCreated && (
-                    <TouchableOpacity
-                      onPress={() => handleUnfavorite(item.id, item.label)}
-                      style={styles.unfavoriteButton}
-                    >
-                      <Text style={styles.unfavoriteText}>✕</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
+                <Text style={styles.cardTitle}>{item.label}</Text>
                 <CustomButton
                   title="Girar roleta"
                   onPress={() => goToSort(item)}
@@ -121,14 +93,6 @@ export default function PresetScreen({ navigation }) {
             )}
           />
         )}
-
-        <ConfirmModal
-          visible={showConfirmModal}
-          title="Remover dos Favoritos"
-          message={`Deseja remover "${selectedPreset?.name}" dos seus favoritos?`}
-          onCancel={cancelRemoval}
-          onConfirm={confirmRemoval}
-        />
       </SafeAreaView>
     </LinearGradient>
   );
@@ -144,31 +108,12 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#2d3a6e',
-    flex: 1,
-  },
-  unfavoriteButton: {
-    backgroundColor: '#ff4444',
-    borderRadius: 15,
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 10,
-  },
-  unfavoriteText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+    marginBottom: 12,
+    textAlign: 'center', // Centralizar o título
   },
   button: {
     alignSelf: 'center', 
@@ -183,4 +128,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
   },
+  // Removidos estilos não utilizados: cardHeader, unfavoriteButton, unfavoriteText
 });
